@@ -26,6 +26,7 @@ describe('ClientController', () => {
           useValue: {
             create: jest.fn(),
             findClientById: jest.fn(),
+            findAllClients: jest.fn(),
           },
         },
       ],
@@ -106,6 +107,40 @@ describe('ClientController', () => {
         response: { message: 'Internal error while retrieving client' },
       });
       expect(service.findClientById).toHaveBeenCalledWith(mockClient._id);
+    });
+  });
+
+  describe('suite test get all clients', () => {
+    it('should get all clients with pagination successfully', async () => {
+      const paginatedResponse = {
+        data: [mockClient],
+        total: 1,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+      };
+      jest.spyOn(service, 'findAllClients').mockResolvedValue(paginatedResponse);
+
+      const result = await controller.findAll({ page: 1, limit: 10 });
+
+      expect(service.findAllClients).toHaveBeenCalledWith(1, 10);
+      expect(result).toBeDefined();
+      expect(result.data).toHaveLength(1);
+      expect(result.total).toBe(1);
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(10);
+      expect(result.totalPages).toBe(1);
+    });
+
+    it('should throw InternalServerErrorException for unexpected errors', async () => {
+      jest
+        .spyOn(service, 'findAllClients')
+        .mockRejectedValue({ response: { message: 'Internal error while finding clients' } });
+
+      await expect(controller.findAll({ page: 1, limit: 10 })).rejects.toEqual({
+        response: { message: 'Internal error while finding clients' },
+      });
+      expect(service.findAllClients).toHaveBeenCalledWith(1, 10);
     });
   });
 });

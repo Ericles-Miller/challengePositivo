@@ -27,6 +27,7 @@ describe('ClientService', () => {
             findByDocument: jest.fn(),
             create: jest.fn(),
             findById: jest.fn(),
+            findAll: jest.fn(),
           },
         },
       ],
@@ -104,6 +105,29 @@ describe('ClientService', () => {
         'Internal error while finding client by id',
       );
       expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+    });
+  });
+
+  describe('suit tests for findAllClients method', () => {
+    it('should find all clients with pagination successfully', async () => {
+      jest.spyOn(clientRepositoryMock, 'findAll').mockResolvedValue({ data: [mockCreatedClient], total: 1 });
+
+      const result = await service.findAllClients(1, 10);
+      expect(result).toEqual({
+        data: [mockCreatedClient],
+        total: 1,
+        page: 1,
+        limit: 10,
+        totalPages: 1,
+      });
+      expect(clientRepositoryMock.findAll).toHaveBeenCalledWith(1, 10);
+    });
+
+    it('should throw InternalServerErrorException on unexpected error', async () => {
+      jest.spyOn(clientRepositoryMock, 'findAll').mockRejectedValue(new InternalServerErrorException());
+
+      await expect(service.findAllClients(1, 10)).rejects.toThrow('Internal error while finding clients');
+      expect(clientRepositoryMock.findAll).toHaveBeenCalledWith(1, 10);
     });
   });
 });
