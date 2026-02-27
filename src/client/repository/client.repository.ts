@@ -9,18 +9,23 @@ import { Injectable } from '@nestjs/common';
 export class ClientRepository implements IClientRepository {
   constructor(@InjectModel(Client.name) private clientModel: Model<Client>) {}
 
+  async findById(id: string): Promise<Client | null> {
+    const client = await this.clientModel.findById(id).exec();
+    return client ? client.toJSON() : null;
+  }
+
   async create(createClientDto: CreateClientDto): Promise<Client> {
     const createdClient = new this.clientModel({ ...createClientDto, updatedAt: null });
     return (await createdClient.save()).toJSON();
   }
 
   async findByEmail(email: string): Promise<Client | null> {
-    const result = await this.clientModel.findOne({ email }).exec();
-    return result ? result.toJSON() : null;
+    const client = await this.clientModel.findOne({ email }).exec();
+    return client ? client.toJSON() : null;
   }
 
   async findByDocument(document: string): Promise<Client | null> {
-    const result = await this.clientModel.findOne({ document }).exec();
-    return result ? result.toJSON() : null;
+    const client = await this.clientModel.findOne({ document }).exec();
+    return client ? client.toJSON() : null;
   }
 }
