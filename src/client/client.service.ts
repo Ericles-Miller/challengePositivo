@@ -35,4 +35,20 @@ export class ClientService {
       throw new InternalServerErrorException('Internal error while finding client by id');
     }
   }
+
+  async findAllClients(page: number = 1, limit: number = 10) {
+    try {
+      const { data, total } = await this.clientRepository.findAll(page, limit);
+
+      return {
+        data,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch {
+      throw new InternalServerErrorException('Internal error while finding clients');
+    }
+  }
 }

@@ -28,4 +28,18 @@ export class ClientRepository implements IClientRepository {
     const client = await this.clientModel.findOne({ document }).exec();
     return client ? client.toJSON() : null;
   }
+
+  async findAll(page: number, limit: number): Promise<{ data: Client[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.clientModel.find().skip(skip).limit(limit).exec(),
+      this.clientModel.countDocuments().exec(),
+    ]);
+
+    return {
+      data: data.map((doc) => doc.toJSON()),
+      total,
+    };
+  }
 }
