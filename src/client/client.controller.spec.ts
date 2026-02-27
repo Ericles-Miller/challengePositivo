@@ -25,7 +25,7 @@ describe('ClientController', () => {
           provide: ClientService,
           useValue: {
             create: jest.fn(),
-            findById: jest.fn(),
+            findClientById: jest.fn(),
           },
         },
       ],
@@ -79,11 +79,11 @@ describe('ClientController', () => {
 
   describe('suite test get client by id', () => {
     it('should get a client by id successfully', async () => {
-      jest.spyOn(service, 'findById').mockResolvedValue(mockClient);
+      jest.spyOn(service, 'findClientById').mockResolvedValue(mockClient);
 
       const result = await controller.findById(mockClient._id);
 
-      expect(service.findById).toHaveBeenCalledWith(mockClient._id);
+      expect(service.findClientById).toHaveBeenCalledWith(mockClient._id);
       expect(result).toBeDefined();
       expect(result.name).toBe(mockClient.name);
       expect(result.email).toBe(mockClient.email);
@@ -91,19 +91,21 @@ describe('ClientController', () => {
     });
 
     it('should throw NotFoundException if client not found', async () => {
-      jest.spyOn(service, 'findById').mockRejectedValue({ response: { message: 'Client not found' } });
+      jest.spyOn(service, 'findClientById').mockRejectedValue({ response: { message: 'Client not found' } });
 
       await expect(controller.findById(mockClient._id)).rejects.toEqual({ response: { message: 'Client not found' } });
-      expect(service.findById).toHaveBeenCalledWith(mockClient._id);
+      expect(service.findClientById).toHaveBeenCalledWith(mockClient._id);
     });
 
     it('should throw InternalServerErrorException for unexpected errors', async () => {
-      jest.spyOn(service, 'findById').mockRejectedValue({ response: { message: 'Internal error while retrieving client' } });
+      jest
+        .spyOn(service, 'findClientById')
+        .mockRejectedValue({ response: { message: 'Internal error while retrieving client' } });
 
       await expect(controller.findById(mockClient._id)).rejects.toEqual({
         response: { message: 'Internal error while retrieving client' },
       });
-      expect(service.findById).toHaveBeenCalledWith(mockClient._id);
+      expect(service.findClientById).toHaveBeenCalledWith(mockClient._id);
     });
   });
 });
