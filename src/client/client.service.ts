@@ -1,4 +1,4 @@
-import { BadRequestException, Inject, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateClientDto } from './dto/create-client.dto';
 import type { IClientRepository } from './repository/client-repository.interface';
 import { ClientResponseDto } from './dto/client-response.dto';
@@ -20,6 +20,19 @@ export class ClientService {
       if (error instanceof BadRequestException) throw error;
 
       throw new InternalServerErrorException('Internal error while creating client');
+    }
+  }
+
+  async findClientById(id: string): Promise<ClientResponseDto> {
+    try {
+      const client = await this.clientRepository.findById(id);
+      if (!client) throw new NotFoundException('Client not found');
+
+      return client;
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+
+      throw new InternalServerErrorException('Internal error while finding client by id');
     }
   }
 }
