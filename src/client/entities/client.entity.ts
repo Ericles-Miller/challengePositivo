@@ -8,6 +8,7 @@ export type ClientDocument = HydratedDocument<Client>;
 export class Client {
   @ApiProperty({ example: '507f1f77bcf86cd799439011', description: 'Client ID' })
   _id: string;
+
   @ApiProperty({ example: 'John Doe', description: 'Client name' })
   @Prop({ required: true })
   name: string;
