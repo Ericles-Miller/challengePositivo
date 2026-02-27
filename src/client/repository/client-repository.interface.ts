@@ -5,4 +5,5 @@ export interface IClientRepository {
   create(createClientDto: CreateClientDto): Promise<Client>;
   findByEmail(email: string): Promise<Client | null>;
   findByDocument(document: string): Promise<Client | null>;
+  findById(id: string): Promise<Client | null>;
 }

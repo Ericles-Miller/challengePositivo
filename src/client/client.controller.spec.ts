@@ -7,7 +7,7 @@ describe('ClientController', () => {
   let controller: ClientController;
   let service: ClientService;
   const createClientDto = { name: 'John Doe', email: 'john@example.com', document: '12345678900' };
-  const mockClient = {
+  const mockClient: ClientResponseDto = {
     _id: '507f1f77bcf86cd799439011',
     name: 'John Doe',
     email: 'john@example.com',
@@ -25,6 +25,7 @@ describe('ClientController', () => {
           provide: ClientService,
           useValue: {
             create: jest.fn(),
+            findById: jest.fn(),
           },
         },
       ],
@@ -41,7 +42,7 @@ describe('ClientController', () => {
 
   describe('suite test create client', () => {
     it('should create a new client successfully', async () => {
-      jest.spyOn(service, 'create').mockResolvedValue(mockClient as ClientResponseDto);
+      jest.spyOn(service, 'create').mockResolvedValue(mockClient);
 
       const result = await controller.create(createClientDto);
 
@@ -69,8 +70,40 @@ describe('ClientController', () => {
     it('should throw InternalServerErrorException for unexpected errors', async () => {
       jest.spyOn(service, 'create').mockRejectedValue({ response: { message: 'Internal error while creating client' } });
 
-      await expect(controller.create(createClientDto)).rejects.toEqual({ response: { message: 'Internal error while creating client' } });
+      await expect(controller.create(createClientDto)).rejects.toEqual({
+        response: { message: 'Internal error while creating client' },
+      });
       expect(service.create).toHaveBeenCalledWith(createClientDto);
+    });
+  });
+
+  describe('suite test get client by id', () => {
+    it('should get a client by id successfully', async () => {
+      jest.spyOn(service, 'findById').mockResolvedValue(mockClient);
+
+      const result = await controller.findById(mockClient._id);
+
+      expect(service.findById).toHaveBeenCalledWith(mockClient._id);
+      expect(result).toBeDefined();
+      expect(result.name).toBe(mockClient.name);
+      expect(result.email).toBe(mockClient.email);
+      expect(result.document).toBe(mockClient.document);
+    });
+
+    it('should throw NotFoundException if client not found', async () => {
+      jest.spyOn(service, 'findById').mockRejectedValue({ response: { message: 'Client not found' } });
+
+      await expect(controller.findById(mockClient._id)).rejects.toEqual({ response: { message: 'Client not found' } });
+      expect(service.findById).toHaveBeenCalledWith(mockClient._id);
+    });
+
+    it('should throw InternalServerErrorException for unexpected errors', async () => {
+      jest.spyOn(service, 'findById').mockRejectedValue({ response: { message: 'Internal error while retrieving client' } });
+
+      await expect(controller.findById(mockClient._id)).rejects.toEqual({
+        response: { message: 'Internal error while retrieving client' },
+      });
+      expect(service.findById).toHaveBeenCalledWith(mockClient._id);
     });
   });
 });
