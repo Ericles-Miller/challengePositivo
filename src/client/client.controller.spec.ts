@@ -98,7 +98,9 @@ describe('ClientController', () => {
     });
 
     it('should throw InternalServerErrorException for unexpected errors', async () => {
-      jest.spyOn(service, 'findClientById').mockRejectedValue({ response: { message: 'Internal error while retrieving client' } });
+      jest
+        .spyOn(service, 'findClientById')
+        .mockRejectedValue({ response: { message: 'Internal error while retrieving client' } });
 
       await expect(controller.findById(mockClient._id)).rejects.toEqual({
         response: { message: 'Internal error while retrieving client' },
