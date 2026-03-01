@@ -1,7 +1,6 @@
 import { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { ApiProperty } from '@nestjs/swagger';
-import { UpdateAllClientDto } from '../dto/update-all-client.dto';
 
 export type ClientDocument = HydratedDocument<Client>;
 
