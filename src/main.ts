@@ -1,10 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
+import { Logger, ValidationPipe } from '@nestjs/common';
+import { LoggingInterceptor } from './logger/logger.interceptor';
+import { AllExceptionsFilter } from './logger/all-execptions-filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const logger = new Logger('Bootstrap');
+
+  app.useGlobalFilters(new AllExceptionsFilter());
+
+  app.useGlobalInterceptors(new LoggingInterceptor());
 
   const config = new DocumentBuilder()
     .setTitle('Challenge Positivo API')
@@ -26,7 +34,7 @@ async function bootstrap() {
     }),
   );
 
-  await app.listen(process.env.PORT ?? 3000, () => console.log('Server is running!!!'));
+  await app.listen(process.env.PORT ?? 3000, () => logger.log('Server is running!!!'));
 }
 
 void bootstrap();
