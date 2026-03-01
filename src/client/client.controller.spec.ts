@@ -29,6 +29,7 @@ describe('ClientController', () => {
             findAllClients: jest.fn(),
             updateClient: jest.fn(),
             updateAllClient: jest.fn(),
+            delete: jest.fn(),
           },
         },
       ],
@@ -269,6 +270,34 @@ describe('ClientController', () => {
         response: { message: 'Internal error while updating client' },
       });
       expect(service.updateAllClient).toHaveBeenCalledWith(mockClient._id, updateData);
+    });
+  });
+
+  describe('suite test delete client', () => {
+    it('should delete a client successfully', async () => {
+      jest.spyOn(service, 'delete').mockResolvedValue();
+
+      await controller.delete(mockClient._id);
+
+      expect(service.delete).toHaveBeenCalledWith(mockClient._id);
+    });
+
+    it('should throw NotFoundException if client not found', async () => {
+      jest.spyOn(service, 'delete').mockRejectedValue({ response: { message: 'Client not found' } });
+
+      await expect(controller.delete(mockClient._id)).rejects.toEqual({
+        response: { message: 'Client not found' },
+      });
+      expect(service.delete).toHaveBeenCalledWith(mockClient._id);
+    });
+
+    it('should throw InternalServerErrorException for unexpected errors', async () => {
+      jest.spyOn(service, 'delete').mockRejectedValue({ response: { message: 'Internal error while deleting client' } });
+
+      await expect(controller.delete(mockClient._id)).rejects.toEqual({
+        response: { message: 'Internal error while deleting client' },
+      });
+      expect(service.delete).toHaveBeenCalledWith(mockClient._id);
     });
   });
 });

@@ -31,6 +31,7 @@ describe('ClientService', () => {
             findAll: jest.fn(),
             update: jest.fn(),
             UpdateAllClientDto: jest.fn(),
+            delete: jest.fn(),
           },
         },
       ],
@@ -265,6 +266,33 @@ describe('ClientService', () => {
       );
       expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
       expect(clientRepositoryMock.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('suit tests for delete method', () => {
+    it('should delete a client successfully', async () => {
+      jest.spyOn(clientRepositoryMock, 'findById').mockResolvedValue(mockCreatedClient);
+      jest.spyOn(clientRepositoryMock, 'delete').mockResolvedValue();
+
+      await service.delete(mockCreatedClient._id);
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.delete).toHaveBeenCalledWith(mockCreatedClient._id);
+    });
+
+    it('should throw NotFoundException if client not found', async () => {
+      jest.spyOn(clientRepositoryMock, 'findById').mockResolvedValue(null);
+
+      await expect(service.delete(mockCreatedClient._id)).rejects.toThrow('Client not found');
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.delete).not.toHaveBeenCalled();
+    });
+
+    it('should throw InternalServerError on unexpected error', async () => {
+      jest.spyOn(clientRepositoryMock, 'findById').mockRejectedValue(new Error('Unexpected error'));
+
+      await expect(service.delete(mockCreatedClient._id)).rejects.toThrow('Internal error while deleting client');
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.delete).not.toHaveBeenCalled();
     });
   });
 });

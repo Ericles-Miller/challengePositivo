@@ -47,4 +47,8 @@ export class ClientRepository implements IClientRepository {
     await this.clientModel.updateOne({ _id: id }, client).exec();
     return client;
   }
+
+  async delete(id: string): Promise<void> {
+    await this.clientModel.deleteOne({ _id: id }).exec();
+  }
 }
