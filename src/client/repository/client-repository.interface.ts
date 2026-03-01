@@ -7,4 +7,5 @@ export interface IClientRepository {
   findByDocument(document: string): Promise<Client | null>;
   findById(id: string): Promise<Client | null>;
   findAll(page: number, limit: number): Promise<{ data: Client[]; total: number }>;
+  update(id: string, updateData: Client): Promise<Client>;
 }

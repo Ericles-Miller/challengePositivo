@@ -27,6 +27,7 @@ describe('ClientController', () => {
             create: jest.fn(),
             findClientById: jest.fn(),
             findAllClients: jest.fn(),
+            updateClient: jest.fn(),
           },
         },
       ],
@@ -141,6 +142,53 @@ describe('ClientController', () => {
         response: { message: 'Internal error while finding clients' },
       });
       expect(service.findAllClients).toHaveBeenCalledWith(1, 10);
+    });
+  });
+
+  describe('suite test update client', () => {
+    it('should update a client successfully', async () => {
+      const updateData = { name: 'John Updated' };
+      const updatedClient = { ...mockClient, name: updateData.name, updatedAt: new Date() };
+
+      jest.spyOn(service, 'updateClient').mockResolvedValue(updatedClient);
+
+      const result = await controller.update(mockClient._id, updateData);
+
+      expect(service.updateClient).toHaveBeenCalledWith(mockClient._id, updateData);
+      expect(result).toBeDefined();
+      expect(result.name).toBe(updateData.name);
+    });
+
+    it('should throw NotFoundException if client not found', async () => {
+      const updateData = { name: 'John Updated' };
+      jest.spyOn(service, 'updateClient').mockRejectedValue({ response: { message: 'Client not found' } });
+
+      await expect(controller.update(mockClient._id, updateData)).rejects.toEqual({
+        response: { message: 'Client not found' },
+      });
+      expect(service.updateClient).toHaveBeenCalledWith(mockClient._id, updateData);
+    });
+
+    it('should throw InternalServerErrorException for unexpected errors', async () => {
+      const updateData = { name: 'John Updated' };
+      jest
+        .spyOn(service, 'updateClient')
+        .mockRejectedValue({ response: { message: 'Internal error while updating client' } });
+
+      await expect(controller.update(mockClient._id, updateData)).rejects.toEqual({
+        response: { message: 'Internal error while updating client' },
+      });
+      expect(service.updateClient).toHaveBeenCalledWith(mockClient._id, updateData);
+    });
+
+    it('should throw ThrottlerException with custom message', async () => {
+      const updateData = { name: 'John Updated' };
+      jest.spyOn(service, 'updateClient').mockRejectedValue({ response: { message: 'Too many requests' } });
+
+      await expect(controller.update(mockClient._id, updateData)).rejects.toEqual({
+        response: { message: 'Too many requests' },
+      });
+      expect(service.updateClient).toHaveBeenCalledWith(mockClient._id, updateData);
     });
   });
 });
