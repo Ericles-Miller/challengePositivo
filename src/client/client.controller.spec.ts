@@ -28,6 +28,7 @@ describe('ClientController', () => {
             findClientById: jest.fn(),
             findAllClients: jest.fn(),
             updateClient: jest.fn(),
+            updateAllClient: jest.fn(),
           },
         },
       ],
@@ -189,6 +190,85 @@ describe('ClientController', () => {
         response: { message: 'Too many requests' },
       });
       expect(service.updateClient).toHaveBeenCalledWith(mockClient._id, updateData);
+    });
+  });
+
+  describe('suite test update all client', () => {
+    it('should update all client fields successfully', async () => {
+      const updateData = { name: 'John Updated', email: 'john.updated@example.com', document: '98765432100' };
+      const updatedClient = { ...mockClient, ...updateData, updatedAt: new Date() };
+
+      jest.spyOn(service, 'updateAllClient').mockResolvedValue(updatedClient);
+
+      const result = await controller.updateAll(mockClient._id, updateData);
+
+      expect(service.updateAllClient).toHaveBeenCalledWith(mockClient._id, updateData);
+      expect(result).toBeDefined();
+      expect(result.name).toBe(updateData.name);
+      expect(result.email).toBe(updateData.email);
+      expect(result.document).toBe(updateData.document);
+    });
+
+    it('should throw NotFoundException if client not found', async () => {
+      const updateData = { name: 'John Updated', email: 'john.updated@example.com', document: '98765432100' };
+      jest.spyOn(service, 'updateAllClient').mockRejectedValue({ response: { message: 'Client not found' } });
+
+      await expect(controller.updateAll(mockClient._id, updateData)).rejects.toEqual({
+        response: { message: 'Client not found' },
+      });
+      expect(service.updateAllClient).toHaveBeenCalledWith(mockClient._id, updateData);
+    });
+
+    it('should throw BadRequestException if any field is missing', async () => {
+      const updateData = { name: 'John Updated', email: 'john.updated@example.com' };
+      jest.spyOn(service, 'updateAllClient').mockRejectedValue({ response: { message: 'All fields must be provided' } });
+
+      await expect(controller.updateAll(mockClient._id, updateData as any)).rejects.toEqual({
+        response: { message: 'All fields must be provided' },
+      });
+      expect(service.updateAllClient).toHaveBeenCalledWith(mockClient._id, updateData);
+    });
+
+    it('should throw BadRequestException if document already exists', async () => {
+      const updateData = { name: 'John Updated', email: 'john.updated@example.com', document: '98765432100' };
+      jest.spyOn(service, 'updateAllClient').mockRejectedValue({ response: { message: 'Document already exists' } });
+
+      await expect(controller.updateAll(mockClient._id, updateData)).rejects.toEqual({
+        response: { message: 'Document already exists' },
+      });
+      expect(service.updateAllClient).toHaveBeenCalledWith(mockClient._id, updateData);
+    });
+
+    it('should throw BadRequestException if email already exists', async () => {
+      const updateData = { name: 'John Updated', email: 'john.updated@example.com', document: '98765432100' };
+      jest.spyOn(service, 'updateAllClient').mockRejectedValue({ response: { message: 'Email already exists' } });
+
+      await expect(controller.updateAll(mockClient._id, updateData)).rejects.toEqual({
+        response: { message: 'Email already exists' },
+      });
+      expect(service.updateAllClient).toHaveBeenCalledWith(mockClient._id, updateData);
+    });
+
+    it('should throw ThrottlerException with custom message', async () => {
+      const updateData = { name: 'John Updated', email: 'john.updated@example.com', document: '98765432100' };
+      jest.spyOn(service, 'updateAllClient').mockRejectedValue({ response: { message: 'Too many requests' } });
+
+      await expect(controller.updateAll(mockClient._id, updateData)).rejects.toEqual({
+        response: { message: 'Too many requests' },
+      });
+      expect(service.updateAllClient).toHaveBeenCalledWith(mockClient._id, updateData);
+    });
+
+    it('should throw InternalServerErrorException for unexpected errors', async () => {
+      const updateData = { name: 'John Updated', email: 'john.updated@example.com', document: '98765432100' };
+      jest
+        .spyOn(service, 'updateAllClient')
+        .mockRejectedValue({ response: { message: 'Internal error while updating client' } });
+
+      await expect(controller.updateAll(mockClient._id, updateData)).rejects.toEqual({
+        response: { message: 'Internal error while updating client' },
+      });
+      expect(service.updateAllClient).toHaveBeenCalledWith(mockClient._id, updateData);
     });
   });
 });
