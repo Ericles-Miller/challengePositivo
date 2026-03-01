@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, Query, Patch, Put } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query, Patch, Put, Delete } from '@nestjs/common';
 import { ClientService } from './client.service';
 import { CreateClientDto } from './dto/create-client.dto';
 import { ClientResponseDto } from './dto/client-response.dto';
@@ -60,5 +60,15 @@ export class ClientController {
   @ApiResponse({ status: 500, description: 'Internal server error' })
   async updateAll(@Param('id') id: string, @Body() updateAllClientDto: UpdateAllClientDto): Promise<ClientResponseDto> {
     return await this.clientService.updateAllClient(id, updateAllClientDto);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: 'Delete client by id', description: 'Endpoint to delete a client by its id' })
+  @ApiResponse({ status: 200, description: 'Client deleted successfully' })
+  @ApiResponse({ status: 404, description: 'Client not found' })
+  @ApiResponse({ status: 429, description: 'Too many requests' })
+  @ApiResponse({ status: 500, description: 'Internal server error' })
+  async delete(@Param('id') id: string): Promise<void> {
+    return await this.clientService.delete(id);
   }
 }

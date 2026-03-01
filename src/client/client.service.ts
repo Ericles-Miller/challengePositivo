@@ -95,4 +95,16 @@ export class ClientService {
       throw new InternalServerErrorException('Internal error while updating client');
     }
   }
+
+  async delete(id: string): Promise<void> {
+    try {
+      const client = await this.clientRepository.findById(id);
+      if (!client) throw new NotFoundException('Client not found');
+
+      await this.clientRepository.delete(id);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('Internal error while deleting client');
+    }
+  }
 }
