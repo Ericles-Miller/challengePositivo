@@ -2,6 +2,7 @@ import { BadRequestException, Inject, Injectable, InternalServerErrorException, 
 import { CreateClientDto } from './dto/create-client.dto';
 import type { IClientRepository } from './repository/client-repository.interface';
 import { ClientResponseDto } from './dto/client-response.dto';
+import { UpdateClientDto } from './dto/update-client.dto';
 
 @Injectable()
 export class ClientService {
@@ -49,6 +50,21 @@ export class ClientService {
       };
     } catch {
       throw new InternalServerErrorException('Internal error while finding clients');
+    }
+  }
+
+  async updateClient(id: string, updateData: UpdateClientDto): Promise<ClientResponseDto> {
+    try {
+      const client = await this.clientRepository.findById(id);
+      if (!client) throw new NotFoundException('Client not found');
+
+      client.name = updateData.name || client.name;
+      client.updatedAt = new Date();
+
+      return await this.clientRepository.update(id, client);
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('Internal error while updating client');
     }
   }
 }

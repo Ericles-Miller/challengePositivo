@@ -28,6 +28,7 @@ describe('ClientService', () => {
             create: jest.fn(),
             findById: jest.fn(),
             findAll: jest.fn(),
+            update: jest.fn(),
           },
         },
       ],
@@ -128,6 +129,45 @@ describe('ClientService', () => {
 
       await expect(service.findAllClients(1, 10)).rejects.toThrow('Internal error while finding clients');
       expect(clientRepositoryMock.findAll).toHaveBeenCalledWith(1, 10);
+    });
+  });
+
+  describe('suit tests for updateClient method', () => {
+    it('should update a client successfully', async () => {
+      const updateData = { name: 'John Updated' };
+      const updatedClient = { ...mockCreatedClient, name: updateData.name, updatedAt: new Date() };
+
+      jest.spyOn(clientRepositoryMock, 'findById').mockResolvedValue(mockCreatedClient);
+      jest.spyOn(clientRepositoryMock, 'update').mockResolvedValue(updatedClient);
+
+      const result = await service.updateClient(mockCreatedClient._id, updateData);
+      expect(result).toEqual(updatedClient);
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.update).toHaveBeenCalledWith(mockCreatedClient._id, {
+        ...mockCreatedClient,
+        name: updateData.name,
+        updatedAt: expect.any(Date),
+      });
+    });
+
+    it('should throw NotFoundException if client not found', async () => {
+      const updateData = { name: 'John Updated' };
+      jest.spyOn(clientRepositoryMock, 'findById').mockResolvedValue(null);
+
+      await expect(service.updateClient(mockCreatedClient._id, updateData)).rejects.toThrow('Client not found');
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw InternalServerErrorException on unexpected error', async () => {
+      const updateData = { name: 'John Updated' };
+      jest.spyOn(clientRepositoryMock, 'findById').mockRejectedValue(new InternalServerErrorException());
+
+      await expect(service.updateClient(mockCreatedClient._id, updateData)).rejects.toThrow(
+        'Internal error while updating client',
+      );
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.update).not.toHaveBeenCalled();
     });
   });
 });
