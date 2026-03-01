@@ -71,6 +71,13 @@ describe('ClientController', () => {
       expect(service.create).toHaveBeenCalledWith(createClientDto);
     });
 
+    it('should throw ThrottlerException with custom message', async () => {
+      jest.spyOn(service, 'create').mockRejectedValue({ response: { message: 'Too many requests' } });
+
+      await expect(controller.create(createClientDto)).rejects.toEqual({ response: { message: 'Too many requests' } });
+      expect(service.create).toHaveBeenCalledWith(createClientDto);
+    });
+
     it('should throw InternalServerErrorException for unexpected errors', async () => {
       jest.spyOn(service, 'create').mockRejectedValue({ response: { message: 'Internal error while creating client' } });
 
@@ -98,6 +105,13 @@ describe('ClientController', () => {
       jest.spyOn(service, 'findClientById').mockRejectedValue({ response: { message: 'Client not found' } });
 
       await expect(controller.findById(mockClient._id)).rejects.toEqual({ response: { message: 'Client not found' } });
+      expect(service.findClientById).toHaveBeenCalledWith(mockClient._id);
+    });
+
+    it('should throw ThrottlerException with custom message', async () => {
+      jest.spyOn(service, 'findClientById').mockRejectedValue({ response: { message: 'Too many requests' } });
+
+      await expect(controller.findById(mockClient._id)).rejects.toEqual({ response: { message: 'Too many requests' } });
       expect(service.findClientById).toHaveBeenCalledWith(mockClient._id);
     });
 
@@ -133,6 +147,15 @@ describe('ClientController', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
       expect(result.totalPages).toBe(1);
+    });
+
+    it('should throw ThrottlerException with custom message', async () => {
+      jest.spyOn(service, 'findAllClients').mockRejectedValue({ response: { message: 'Too many requests' } });
+
+      await expect(controller.findAll({ page: 1, limit: 10 })).rejects.toEqual({
+        response: { message: 'Too many requests' },
+      });
+      expect(service.findAllClients).toHaveBeenCalledWith(1, 10);
     });
 
     it('should throw InternalServerErrorException for unexpected errors', async () => {
@@ -287,6 +310,15 @@ describe('ClientController', () => {
 
       await expect(controller.delete(mockClient._id)).rejects.toEqual({
         response: { message: 'Client not found' },
+      });
+      expect(service.delete).toHaveBeenCalledWith(mockClient._id);
+    });
+
+    it('should throw ThrottlerException with custom message', async () => {
+      jest.spyOn(service, 'delete').mockRejectedValue({ response: { message: 'Too many requests' } });
+
+      await expect(controller.delete(mockClient._id)).rejects.toEqual({
+        response: { message: 'Too many requests' },
       });
       expect(service.delete).toHaveBeenCalledWith(mockClient._id);
     });
