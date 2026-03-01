@@ -42,4 +42,9 @@ export class ClientRepository implements IClientRepository {
       total,
     };
   }
+
+  async update(id: string, client: Client): Promise<Client> {
+    await this.clientModel.updateOne({ _id: id }, client).exec();
+    return client;
+  }
 }
