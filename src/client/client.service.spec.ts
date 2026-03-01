@@ -3,6 +3,7 @@ import { ClientService } from './client.service';
 import { IClientRepository } from './repository/client-repository.interface';
 import { InternalServerErrorException } from '@nestjs/common';
 import { ClientResponseDto } from './dto/client-response.dto';
+import { UpdateAllClientDto } from './dto/update-all-client.dto';
 
 describe('ClientService', () => {
   let service: ClientService;
@@ -29,6 +30,7 @@ describe('ClientService', () => {
             findById: jest.fn(),
             findAll: jest.fn(),
             update: jest.fn(),
+            UpdateAllClientDto: jest.fn(),
           },
         },
       ],
@@ -164,6 +166,101 @@ describe('ClientService', () => {
       jest.spyOn(clientRepositoryMock, 'findById').mockRejectedValue(new InternalServerErrorException());
 
       await expect(service.updateClient(mockCreatedClient._id, updateData)).rejects.toThrow(
+        'Internal error while updating client',
+      );
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('suit tests for updateAllClient method', () => {
+    it('should update all client fields successfully', async () => {
+      const updateData: UpdateAllClientDto = {
+        name: 'John Updated',
+        email: 'john.updated@example.com',
+        document: '98765432100',
+      };
+      const updatedClient = { ...mockCreatedClient, ...updateData, updatedAt: new Date() };
+
+      jest.spyOn(clientRepositoryMock, 'findById').mockResolvedValue(mockCreatedClient);
+      jest.spyOn(clientRepositoryMock, 'update').mockResolvedValue(updatedClient);
+
+      const result = await service.updateAllClient(mockCreatedClient._id, updateData);
+      expect(result).toEqual(updatedClient);
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.update).toHaveBeenCalledWith(mockCreatedClient._id, {
+        ...mockCreatedClient,
+        ...updateData,
+        updatedAt: expect.any(Date),
+      });
+    });
+
+    it('should throw NotFoundException if client not found', async () => {
+      const updateData: UpdateAllClientDto = {
+        name: 'John Updated',
+        email: 'john.updated@example.com',
+        document: '98765432100',
+      };
+      jest.spyOn(clientRepositoryMock, 'findById').mockResolvedValue(null);
+
+      await expect(service.updateAllClient(mockCreatedClient._id, updateData)).rejects.toThrow('Client not found');
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if any field is missing', async () => {
+      const updateData: Partial<UpdateAllClientDto> = {
+        name: 'John Updated',
+        email: 'john.updated@example.com',
+      };
+      jest.spyOn(clientRepositoryMock, 'findById').mockResolvedValue(mockCreatedClient);
+
+      await expect(service.updateAllClient(mockCreatedClient._id, updateData as UpdateAllClientDto)).rejects.toThrow(
+        'All fields must be provided',
+      );
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if document already exists', async () => {
+      const updateData: UpdateAllClientDto = {
+        name: 'John Updated',
+        email: 'john.updated@example.com',
+        document: '98765432100',
+      };
+      jest.spyOn(clientRepositoryMock, 'findById').mockResolvedValue(mockCreatedClient);
+      jest.spyOn(clientRepositoryMock, 'findByDocument').mockResolvedValue({ ...mockCreatedClient, _id: 'different-id' });
+
+      await expect(service.updateAllClient(mockCreatedClient._id, updateData)).rejects.toThrow('Document already exists');
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.findByDocument).toHaveBeenCalledWith(updateData.document);
+      expect(clientRepositoryMock.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw BadRequestException if email already exists', async () => {
+      const updateData: UpdateAllClientDto = {
+        name: 'John Updated',
+        email: 'john.updated@example.com',
+        document: '98765432100',
+      };
+      jest.spyOn(clientRepositoryMock, 'findById').mockResolvedValue(mockCreatedClient);
+      jest.spyOn(clientRepositoryMock, 'findByEmail').mockResolvedValue({ ...mockCreatedClient, _id: 'different-id' });
+
+      await expect(service.updateAllClient(mockCreatedClient._id, updateData)).rejects.toThrow('Email already exists');
+      expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
+      expect(clientRepositoryMock.findByEmail).toHaveBeenCalledWith(updateData.email);
+      expect(clientRepositoryMock.update).not.toHaveBeenCalled();
+    });
+
+    it('should throw InternalServerError on unexpected error', async () => {
+      const updateData: UpdateAllClientDto = {
+        name: 'John Updated',
+        email: 'john.updated@example.com',
+        document: '98765432100',
+      };
+      jest.spyOn(clientRepositoryMock, 'findById').mockRejectedValue(new Error('Unexpected error'));
+
+      await expect(service.updateAllClient(mockCreatedClient._id, updateData)).rejects.toThrow(
         'Internal error while updating client',
       );
       expect(clientRepositoryMock.findById).toHaveBeenCalledWith(mockCreatedClient._id);
