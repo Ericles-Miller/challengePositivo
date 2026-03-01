@@ -8,4 +8,5 @@ export interface IClientRepository {
   findById(id: string): Promise<Client | null>;
   findAll(page: number, limit: number): Promise<{ data: Client[]; total: number }>;
   update(id: string, updateData: Client): Promise<Client>;
+  delete(id: string): Promise<void>;
 }
